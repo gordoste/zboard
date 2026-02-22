@@ -33,6 +33,9 @@ LOG_MODULE_REGISTER(main);
 #define RGB(_r, _g, _b) {.r = (_r), .g = (_g), .b = (_b)}
 #define COLOR(_r, _g, _b, _name) {.rgb = RGB((_r), (_g), (_b)), .name = (_name)}
 
+// Find the LED number that is one above the given LED number
+#define LED_ABOVE(ledNum) (ledNum + (ledNum / NUM_ROWS % 2 == 0 ? -1 : 1))
+
 typedef struct colorType
 {
 	struct led_rgb rgb;
@@ -74,6 +77,7 @@ static const color_t color_list[] = {
 //  <problem>=~[Dl]#<holdspec>(,<holdspec>)*#
 // Testing modes:
 // t<holdnum>,<holdnum>,<holdnum>#  (applies LED mapping)
+// a<holdnum>,<holdnum>,<holdnum>#  (applies LED mapping and lights additional LEDs)
 // x<holdnum>,<holdnum>,<holdnum>#  (doesn't apply LED mapping)
 // t# or x# 	- clear board
 
@@ -113,7 +117,7 @@ int parseBufferPos = 0;
 char strProblem[PROBLEM_STRING_MAX_LENGTH] = "";	   // Complete problem string
 char strProblemBackup[PROBLEM_STRING_MAX_LENGTH] = ""; // Copy of complete problem string
 bool bProbPending = false;							   // Do we have a problem ready to display?
-bool bBetaLEDs = false;								   // Beta LED setting
+bool bAdditionalLEDs = false;						   // Additional LED setting
 bool bTestMode = false;
 bool bApplyLEDMapping = true;
 
@@ -134,7 +138,7 @@ void handleChar(char c)
 	switch (parse_state)
 	{
 	case PARSE_START:
-		bBetaLEDs = false;
+		bAdditionalLEDs = false;
 		parseBuffer[0] = '\0';
 		parseBufferPos = 0;
 		switch (c)
@@ -162,13 +166,20 @@ void handleChar(char c)
 			bApplyLEDMapping = false;
 			parse_state = PARSE_HOLDS;
 			return;
+		case 'a':
+		case 'A':
+			bTestMode = true;
+			bApplyLEDMapping = true;
+			bAdditionalLEDs = true;
+			parse_state = PARSE_HOLDS;
+			return;
 		}
 		break;
 	case PARSE_CONFIG:
 		switch (c)
 		{
 		case 'D':
-			bBetaLEDs = true;
+			bAdditionalLEDs = true;
 			parse_state = PARSE_PROB_START;
 			return;
 
@@ -262,12 +273,10 @@ void renderProblem()
 	strncpy(strProblemBackup, strProblem, sizeof(strProblemBackup) - 1); // store copy of problem string
 	strProblemBackup[sizeof(strProblemBackup) - 1] = '\0';
 
-	// Handle beta LEDs here (TODO)
-
 	char *token = strtok(strProblem, ",");
 	int ledCount = 0;
 	while (token)
-	{ // render all normal LEDs (possibly overriding beta LEDs)
+	{ // render all normal LEDs
 		ledCount++;
 		char holdType = bTestMode ? 'P' : token[0];			 // Hold descriptions consist of a hold type (S, P, E) (omitted in test mode)...
 		int holdNum = atoi(bTestMode ? token : (token + 1)); // ... and a hold number
@@ -304,6 +313,39 @@ void renderProblem()
 		}
 		pixels[ledNum] = led_color->rgb;
 		LOG_INF("%c%d --> %d (%s)", holdType, holdNum, ledNum, led_color->name);
+
+		/*
+		To figure out which LEDs are in the top row (and don't get an additional LED), we look
+		at the remainder when divided by (2*NUM_ROWS). If the remainder is 0, it's in the top
+		row of a "down" column. If the remainder is (2*NUM_ROWS - 1), it's in the top row of
+		an "up" column.
+
+		r is the number of rows:
+
+		6r-1	4r	<-	4r-1	2r	<-	2r-1	0
+		6r-2	4r+1	4r-2	2r+1	2r-2	1
+		...		...		...		...		...		...
+		5r+1	5r-2	3r+1	3r-2	r+1		r-2
+		5r	<-	5r-1	3r	<-	3r-1	r	<-	r-1
+
+		These numbers are the Moonboard hold numbers - the LED mapping will look after
+		translating these to the actual LED numbers for the wiring in use.
+
+		*/
+		if (bAdditionalLEDs)
+		{
+			uint8_t t = ledNum % (2 * NUM_ROWS);
+			if (t != 0 && t != (2 * NUM_ROWS - 1))
+			{ // Not in the top row
+				uint16_t ledAboveNum = LED_ABOVE(ledNum);
+				pixels[ledAboveNum] = COLOR_YELLOW.rgb;
+				LOG_INF("add. %d", ledAboveNum);
+			}
+			else
+			{
+				LOG_DBG("LED %d is in the top row, skipping additional LED", ledNum);
+			}
+		}
 		token = strtok(NULL, ",");
 	}
 	int err = led_strip_update_rgb(strip, pixels, STRIP_NUM_PIXELS);
