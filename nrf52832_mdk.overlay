@@ -1,0 +1,79 @@
+#include <zephyr/dt-bindings/led/led.h>
+
+&i2s0 {
+	status = "okay";
+	pinctrl-0 = <&i2s0_default>;
+	pinctrl-1 = <&i2s0_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	led_strip: ws2812-i2s@0 {
+		compatible = "worldsemi,ws2812-i2s";
+		reg = <0x0>;
+		chain-length = <256>;
+		status = "okay";
+		color-mapping = <LED_COLOR_ID_GREEN
+		LED_COLOR_ID_RED
+		LED_COLOR_ID_BLUE>;
+		reset-delay = <120>;
+	};
+};
+
+&pinctrl {
+	i2s0_default: i2s0_default {
+		group1 {
+			psels = <NRF_PSEL(I2S_SCK_M, 0, 14)>,
+			<NRF_PSEL(I2S_LRCK_M, 0, 15)>,
+			<NRF_PSEL(I2S_SDIN, 0, 16)>,
+			<NRF_PSEL(I2S_SDOUT, 0, 17)>,
+			<NRF_PSEL(I2S_MCK, 0, 18)>;
+		};
+	};
+
+	i2s0_sleep: i2s0_sleep {
+		group1 {
+			psels = <NRF_PSEL(I2S_SCK_M, 0, 14)>;
+		};
+	};
+};
+
+/ {
+	aliases {
+		led-strip = &led_strip;
+		zboard-input = &bt_nus_console_uart;
+	};
+};
+
+&i2c0 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+	zephyr,concat-buf-size = <4096>;
+
+	ssd1306: ssd1306@3c {
+		compatible = "solomon,ssd1306fb";
+		reg = <0x3c>;
+		segment-offset = <0>;
+		page-offset = <0>;
+		height = <64>;
+		width = <128>;
+		display-offset = <0>;
+		prechargep = <0x22>;
+		multiplex-ratio = <63>;
+		com-invdir;
+		segment-remap;
+	};
+};
+
+/ {
+	chosen {
+		zephyr,console = &bt_nus_console_uart;
+		zephyr,shell-uart = &bt_nus_console_uart;
+		zephyr,display = &ssd1306;
+	};
+
+	bt_nus_console_uart: bt_nus_console_uart {
+		compatible = "zephyr,nus-uart";
+		rx-fifo-size = <1024>;
+		tx-fifo-size = <1024>;
+	};
+};
