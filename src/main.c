@@ -25,7 +25,7 @@ LOG_MODULE_REGISTER(main);
 #define STRIP_NODE DT_ALIAS(led_strip)
 
 #if DT_NODE_HAS_PROP(DT_ALIAS(led_strip), chain_length)
-#define STRIP_NUM_PIXELS DT_PROP(DT_ALIAS(led_strip), chain_length)
+#define STRIP_LENGTH DT_PROP(DT_ALIAS(led_strip), chain_length)
 #else
 #error Unable to determine length of LED strip
 #endif
@@ -94,7 +94,7 @@ typedef enum parseState
 #define NUM_PIXELS NUM_ROWS *NUM_COLS
 static u_int16_t led_map[NUM_PIXELS];
 
-static struct led_rgb pixels[STRIP_NUM_PIXELS];
+static struct led_rgb pixels[STRIP_LENGTH];
 
 static const struct device *const strip = DEVICE_DT_GET(STRIP_NODE);
 static const struct device *const uart_in = DEVICE_DT_GET(UART_NODE);
@@ -125,11 +125,11 @@ void handleChar(char);
 
 void clearStrip()
 {
-	for (int i = 0; i < STRIP_NUM_PIXELS; i++)
+	for (int i = 0; i < STRIP_LENGTH; i++)
 	{
 		pixels[i] = COLOR_BLACK.rgb;
 	}
-	led_strip_update_rgb(strip, pixels, STRIP_NUM_PIXELS);
+	led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
 }
 
 void handleChar(char c)
@@ -218,12 +218,13 @@ void handleChar(char c)
 	}
 }
 
-static void bt_connected(struct bt_conn *conn, uint8_t err)
+static void bt_handle_connected(struct bt_conn *conn, uint8_t err)
 {
 	if (err)
 	{
 		LOG_ERR("Conn failed, err 0x%02x %s\n", err, bt_hci_err_to_str(err));
 	}
+	// Restart advertising so that multiple clients can connect
 	int rc = bt_le_adv_start(BT_LE_ADV_CONN_FAST_1, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 	if (!err)
 	{
@@ -242,12 +243,13 @@ static void bt_connected(struct bt_conn *conn, uint8_t err)
 	}
 }
 
-static void bt_disconnected(struct bt_conn *conn, uint8_t reason)
+static void bt_handle_disconnected(struct bt_conn *conn, uint8_t reason)
 {
 	LOG_INF("Disconnected, reason 0x%02x %s\n", reason, bt_hci_err_to_str(reason));
 }
 
-static void bt_recycled(void)
+// A client has dropped and we have a free connection object again, so we can start advertising if we weren't already
+static void bt_handle_recycled(void)
 {
 	int rc = bt_le_adv_start(BT_LE_ADV_CONN_FAST_1, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 	if (rc)
@@ -261,9 +263,9 @@ static void bt_recycled(void)
 }
 
 static struct bt_conn_cb bt_conn_cb_zboard = {
-	.connected = bt_connected,
-	.disconnected = bt_disconnected,
-	.recycled = bt_recycled};
+	.connected = bt_handle_connected,
+	.disconnected = bt_handle_disconnected,
+	.recycled = bt_handle_recycled};
 
 void renderProblem()
 {
@@ -348,7 +350,7 @@ void renderProblem()
 		}
 		token = strtok(NULL, ",");
 	}
-	int err = led_strip_update_rgb(strip, pixels, STRIP_NUM_PIXELS);
+	int err = led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
 	if (err)
 	{
 		LOG_ERR("Failed to update LED strip: %d", err);
@@ -426,7 +428,7 @@ int main(void)
 		return 0;
 	}
 
-	/* configure interrupt and callback to receive data */
+	// configure interrupt and callback to receive data
 	err = uart_irq_callback_set(uart_in, input_cb);
 
 	if (err < 0)
@@ -447,6 +449,7 @@ int main(void)
 	}
 	uart_irq_rx_enable(uart_in);
 
+	// Enable Bluetooth and start advertising
 	err = bt_enable(NULL);
 	if (err)
 	{
@@ -473,6 +476,9 @@ int main(void)
 	char c;
 	while (1)
 	{
+		// Since receiving characters is handled by interrupts ( see input_cb() ), our main loop
+		// just checks if we have a problem ready to display and renders it.
+		// We do want to parse all characters in the UART receive queue first though.
 		if (bProbPending)
 		{
 			err = uart_poll_in(uart_in, &c);
