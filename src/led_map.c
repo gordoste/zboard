@@ -22,6 +22,10 @@ bool bWiringFirstLEDBottom = false;
 
 bool ledSkip(uint16_t ledNum)
 {
+	if (sizeof(ledSkipList) == 0)
+	{
+		return false;
+	}
 	for (size_t i = 0; i < ledSkipNum; i++)
 	{
 		if (ledNum == ledSkipList[i])
