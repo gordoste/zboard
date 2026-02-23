@@ -1,5 +1,21 @@
 #include <stdlib.h>
 
+// These #defines must occur before including led_map.h since they control the wiring configuration that the LED mapping code needs to know about
+
+// Wiring must be zig-zag fashion up and down the columns.
+// By default, we have the first LED at the top of the first column, and the columns go left to right
+// The following defines can modify this
+#define WIRING_FIRST_LED_RIGHT 			// Columns goes right to left instead
+//#define WIRING_FIRST_LED_BOTTOM		1	// First LED is at the bottom of the first column instead of the top
+// If some LEDs need to be skipped because there is a beam or other obstruction that you need to go around/over,
+// you can control that here.You need to specify the LED numbers that will be skipped in the first column and the code
+// will assume the other columns are identical.
+// For example, if you have a beam between the 6th and 7th row, and another between the 12th and 13th row, and you need
+// to skip 2 LEDs for each beam, you'd specify 6,7,14,15 so that LEDs 0-5, 8-13, 16-21 are used for the first column
+#define WIRING_LEDS_SKIP_FIRST_COLUMN 6,7,14,15
+
+#include "led_map.h"
+
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
 #include <zephyr/bluetooth/bluetooth.h>
@@ -12,11 +28,6 @@
 
 #define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(main);
-
-// Only one of these should be uncommented
-// #define WIRING_NORMAL	// Wiring starts bottom-left, then goes up column, then right to next column and down
-#define WIRING_REVERSE // Wiring starts top-right, then goes down column, then left to next column and up
-// #define WIRING_BOTTOM_RIGHT // Wiring starts bottom-right, then up column, then left and down next column, etc.
 
 #define LED_BRIGHTNESS 64
 #define PROBLEM_STRING_MAX_LENGTH 256
@@ -92,7 +103,7 @@ typedef enum parseState
 #define NUM_ROWS 18
 #define NUM_COLS 11
 #define NUM_PIXELS NUM_ROWS *NUM_COLS
-static u_int16_t led_map[NUM_PIXELS];
+static uint16_t led_map[NUM_PIXELS];
 
 static struct led_rgb pixels[STRIP_LENGTH];
 
@@ -278,11 +289,11 @@ void renderProblem()
 	char *token = strtok(strProblem, ",");
 	int ledCount = 0;
 	while (token)
-	{ // render all normal LEDs
+	{
 		ledCount++;
 		char holdType = bTestMode ? 'P' : token[0];			 // Hold descriptions consist of a hold type (S, P, E) (omitted in test mode)...
 		int holdNum = atoi(bTestMode ? token : (token + 1)); // ... and a hold number
-		int ledNum = bApplyLEDMapping ? led_map[holdNum] : holdNum;
+		int ledNum = bApplyLEDMapping ? led_map[moonNumToMapNum(holdNum, NUM_ROWS, NUM_COLS)] : holdNum;
 		const color_t *led_color = &COLOR_BLACK;
 		switch (holdType)
 		{
@@ -384,31 +395,7 @@ void input_cb(const struct device *dev, void *user_data)
 
 int main(void)
 {
-
-// Initialize the LED mapping
-#ifdef WIRING_NORMAL
-	for (uint16_t i = 0; i < NUM_PIXELS; i++)
-	{
-		led_map[i] = i;
-	}
-#endif
-#ifdef WIRING_REVERSE
-	for (uint16_t i = 0; i < NUM_PIXELS; i++)
-	{
-		led_map[i] = NUM_PIXELS - 1 - i;
-	}
-#endif
-#ifdef WIRING_BOTTOM_RIGHT // Wiring starts bottom-right, then up column, then left and down next column, etc.
-	for (int col = 0; col < NUM_COLS; col++)
-	{
-		for (int row = 0; row < NUM_ROWS; row++)
-		{
-			uint16_t moonboard_lednum = NUM_ROWS * col + (col % 2 == 0 ? row : (NUM_ROWS - 1 - row));
-			uint16_t zboard_lednum = NUM_ROWS * (NUM_COLS - 1 - col) + (col % 2 == 0 ? row : (NUM_ROWS - 1 - row));
-			led_map[moonboard_lednum] = zboard_lednum;
-		}
-	}
-#endif
+	populate_led_map(led_map, NUM_ROWS, NUM_COLS);
 
 	if (device_is_ready(strip))
 	{
