@@ -22,8 +22,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define NUM_ROWS 18
+#define NUM_COLS 11
+#define NUM_PIXELS NUM_ROWS *NUM_COLS
+static uint16_t led_map[NUM_PIXELS];
+
 bool ledSkip(uint16_t);
-void populate_led_map(uint16_t led_map[], uint8_t numRows, uint8_t numCols);
-uint16_t moonNumToMapNum(uint16_t moonNum, uint8_t numRows, uint8_t numCols);
+void populate_led_map(uint16_t led_map[]);
+uint16_t moonNumToMapNum(uint16_t moonNum);
 
 #endif // _LED_MAP_H

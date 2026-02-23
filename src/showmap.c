@@ -3,14 +3,9 @@
 
 #include "led_map.h"
 
-#define NUM_ROWS 18
-#define NUM_COLS 11
-#define NUM_PIXELS NUM_ROWS *NUM_COLS
-static uint16_t led_map[NUM_PIXELS];
-
 int main(int argv, char *argc[])
 {
-    populate_led_map(led_map, NUM_ROWS, NUM_COLS);
+    populate_led_map(led_map);
     
     printf("Printing zboard LED map:\n\n");
     for (int i = (NUM_COLS-1); i >= 0; i--) {

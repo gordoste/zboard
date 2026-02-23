@@ -100,11 +100,6 @@ typedef enum parseState
 	PARSE_HOLDS
 } parse_state_t;
 
-#define NUM_ROWS 18
-#define NUM_COLS 11
-#define NUM_PIXELS NUM_ROWS *NUM_COLS
-static uint16_t led_map[NUM_PIXELS];
-
 static struct led_rgb pixels[STRIP_LENGTH];
 
 static const struct device *const strip = DEVICE_DT_GET(STRIP_NODE);
@@ -293,7 +288,7 @@ void renderProblem()
 		ledCount++;
 		char holdType = bTestMode ? 'P' : token[0];			 // Hold descriptions consist of a hold type (S, P, E) (omitted in test mode)...
 		int holdNum = atoi(bTestMode ? token : (token + 1)); // ... and a hold number
-		int ledNum = bApplyLEDMapping ? led_map[moonNumToMapNum(holdNum, NUM_ROWS, NUM_COLS)] : holdNum;
+		int ledNum = bApplyLEDMapping ? led_map[moonNumToMapNum(holdNum)] : holdNum;
 		const color_t *led_color = &COLOR_BLACK;
 		switch (holdType)
 		{
@@ -395,7 +390,7 @@ void input_cb(const struct device *dev, void *user_data)
 
 int main(void)
 {
-	populate_led_map(led_map, NUM_ROWS, NUM_COLS);
+	populate_led_map(led_map);
 
 	if (device_is_ready(strip))
 	{
