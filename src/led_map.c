@@ -93,7 +93,7 @@ void populate_led_map(uint16_t led_map[])
 	}
 }
 #else
-void populate_led_map_custom(uint16_t led_map[], uint8_t numRows, uint8_t numCols)
+void populate_led_map(uint16_t led_map[], uint8_t numRows, uint8_t numCols)
 {
 	// If you want to define your own wiring configuration, you can do that here
 	// The led_map[x*numRows + y] array needs to contain the LED number that should be used for the
