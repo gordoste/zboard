@@ -26,6 +26,8 @@
 #define NUM_COLS 11
 #define NUM_PIXELS NUM_ROWS *NUM_COLS
 
+#define LED_MAP_COL_ROW(col, row) (led_map[(col)*NUM_ROWS + (row)])
+
 extern uint16_t led_map[NUM_PIXELS];
 
 bool ledSkip(uint16_t);
