@@ -44,8 +44,11 @@ LOG_MODULE_REGISTER(main);
 #define RGB(_r, _g, _b) {.r = (_r), .g = (_g), .b = (_b)}
 #define COLOR(_r, _g, _b, _name) {.rgb = RGB((_r), (_g), (_b)), .name = (_name)}
 
-// Find the LED number that is one above the given LED number
-#define LED_ABOVE(ledNum) (ledNum + (ledNum / NUM_ROWS % 2 == 0 ? -1 : 1))
+#define LED_SET_ROW(row, color) \
+    for (int __i = 0; __i < NUM_COLS; __i++) pixels[LED_MAP_COL_ROW(__i, row)] = (color).rgb
+
+#define LED_SET_COL(col, color) \
+    for (int __i = 0; __i < NUM_ROWS; __i++) pixels[LED_MAP_COL_ROW(col, __i)] = (color).rgb
 
 typedef struct colorType
 {
@@ -438,6 +441,21 @@ int main(void)
 	}
 
 	LOG_INF("Bluetooth setup complete, advertising as '%s'", DEVICE_NAME);
+
+	for (int c = 0; c < 100; c++) // flash all LEDs in sequence to show we're alive and have Bluetooth working
+	{
+		for (int r = 0; r < NUM_ROWS; r++)
+		{
+			LED_SET_ROW(r, color_list[(r+c) % 8]);
+		}
+		int err = led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
+		if (err)
+		{
+			LOG_ERR("Failed to update LED strip: %d", err);
+		}
+		k_sleep(K_MSEC(100));
+	}
+	clearStrip();
 
 	char c;
 	while (1)
