@@ -283,12 +283,14 @@ void renderProblem()
 
 	char *token = strtok(strProblem, ",");
 	int ledCount = 0;
+	uint16_t ledNum;
 	while (token)
 	{
 		ledCount++;
 		char holdType = bTestMode ? 'P' : token[0];			 // Hold descriptions consist of a hold type (S, P, E) (omitted in test mode)...
-		int holdNum = atoi(bTestMode ? token : (token + 1)); // ... and a hold number
-		int ledNum = bApplyLEDMapping ? led_map[moonNumToMapNum(holdNum)] : holdNum;
+		int moonNum = atoi(bTestMode ? token : (token + 1)); // ... and a hold number
+		uint16_t mapNum = moonNumToMapNum(moonNum);
+		ledNum = bApplyLEDMapping ? led_map[mapNum] : moonNum;
 		const color_t *led_color = &COLOR_BLACK;
 		switch (holdType)
 		{
@@ -320,32 +322,14 @@ void renderProblem()
 			break;
 		}
 		pixels[ledNum] = led_color->rgb;
-		LOG_INF("%c%d --> %d (%s)", holdType, holdNum, ledNum, led_color->name);
+		LOG_INF("%c%d --> %d (%s)", holdType, moonNum, ledNum, led_color->name);
 
-		/*
-		To figure out which LEDs are in the top row (and don't get an additional LED), we look
-		at the remainder when divided by (2*NUM_ROWS). If the remainder is 0, it's in the top
-		row of a "down" column. If the remainder is (2*NUM_ROWS - 1), it's in the top row of
-		an "up" column.
-
-		r is the number of rows:
-
-		6r-1	4r	<-	4r-1	2r	<-	2r-1	0
-		6r-2	4r+1	4r-2	2r+1	2r-2	1
-		...		...		...		...		...		...
-		5r+1	5r-2	3r+1	3r-2	r+1		r-2
-		5r	<-	5r-1	3r	<-	3r-1	r	<-	r-1
-
-		These numbers are the Moonboard hold numbers - the LED mapping will look after
-		translating these to the actual LED numbers for the wiring in use.
-
-		*/
 		if (bAdditionalLEDs)
 		{
-			uint8_t t = ledNum % (2 * NUM_ROWS);
-			if (t != 0 && t != (2 * NUM_ROWS - 1))
-			{ // Not in the top row
-				uint16_t ledAboveNum = LED_ABOVE(ledNum);
+			if (mapNum % NUM_ROWS != NUM_ROWS - 1) // Not in the top row
+			{
+				// If we're not using the LED mapping, just get the next LED
+				uint16_t ledAboveNum = bApplyLEDMapping ? led_map[mapNum+1] : ledNum + 1;
 				pixels[ledAboveNum] = COLOR_YELLOW.rgb;
 				LOG_INF("add. %d", ledAboveNum);
 			}
