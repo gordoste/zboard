@@ -374,7 +374,7 @@ void input_cb(const struct device *dev, void *user_data)
 
 int main(void)
 {
-	populate_led_map(led_map);
+	initialize_led_map();
 
 	if (device_is_ready(strip))
 	{

@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[])
 {
-    populate_led_map(led_map);
+    initialize_led_map();
 
     if (argc == 1)
     {

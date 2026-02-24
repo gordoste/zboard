@@ -57,7 +57,7 @@ uint16_t moonNumToMapNum(uint16_t moonNum)
 }
 
 #ifndef WIRING_CUSTOM
-void populate_led_map(uint16_t led_map[])
+void initialize_led_map()
 {
 	bool bWiringGoesDownThisCol = !bWiringFirstLEDBottom;
 	uint8_t ledsInCol = NUM_ROWS + ledSkipNum; // number of LEDs in each column including skipped LEDs
@@ -95,7 +95,7 @@ void populate_led_map(uint16_t led_map[])
 	}
 }
 #else
-void populate_led_map(uint16_t led_map[], uint8_t numRows, uint8_t numCols)
+void initialize_led_map()
 {
 	// If you want to define your own wiring configuration, you can do that here
 	// The led_map[x*numRows + y] array needs to contain the LED number that should be used for the

@@ -14,7 +14,7 @@
 // to skip 2 LEDs for each beam, you'd specify 6,7,14,15 so that LEDs 0-5, 8-13, 16-21 are used for the first column
 // #define WIRING_LEDS_SKIP_FIRST_COLUMN 6,7,14,15
 
-// If you want to define your own wiring configuration, you need to unccmment the following line and implement populate_led_map()
+// If you want to define your own wiring configuration, you need to unccmment the following line and implement initialize_led_map()
 // in led_map.c
 // #define WIRING_CUSTOM
 
@@ -29,7 +29,7 @@
 extern uint16_t led_map[NUM_PIXELS];
 
 bool ledSkip(uint16_t);
-void populate_led_map(uint16_t led_map[]);
+void initialize_led_map();
 uint16_t moonNumToMapNum(uint16_t moonNum);
 
 #endif // _LED_MAP_H
