@@ -1,5 +1,7 @@
 #include "led_map.h"
 
+uint16_t led_map[NUM_PIXELS];
+
 #ifdef WIRING_LEDS_SKIP_FIRST_COLUMN
 uint8_t ledSkipList[] = {WIRING_LEDS_SKIP_FIRST_COLUMN};
 #else

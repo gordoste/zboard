@@ -25,7 +25,8 @@
 #define NUM_ROWS 18
 #define NUM_COLS 11
 #define NUM_PIXELS NUM_ROWS *NUM_COLS
-static uint16_t led_map[NUM_PIXELS];
+
+extern uint16_t led_map[NUM_PIXELS];
 
 bool ledSkip(uint16_t);
 void populate_led_map(uint16_t led_map[]);
