@@ -43,32 +43,10 @@
 	};
 };
 
-&i2c0 {
-	compatible = "nordic,nrf-twim";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_STANDARD>;
-	zephyr,concat-buf-size = <4096>;
-
-	ssd1306: ssd1306@3c {
-		compatible = "solomon,ssd1306fb";
-		reg = <0x3c>;
-		segment-offset = <0>;
-		page-offset = <0>;
-		height = <64>;
-		width = <128>;
-		display-offset = <0>;
-		prechargep = <0x22>;
-		multiplex-ratio = <63>;
-		com-invdir;
-		segment-remap;
-	};
-};
-
 / {
 	chosen {
 		zephyr,console = &bt_nus_console_uart;
 		zephyr,shell-uart = &bt_nus_console_uart;
-		zephyr,display = &ssd1306;
 	};
 
 	bt_nus_console_uart: bt_nus_console_uart {
