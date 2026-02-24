@@ -38,15 +38,15 @@ bool ledSkip(uint16_t ledNum)
 
 uint16_t moonNumToMapNum(uint16_t moonNum)
 {
-	// We get passed the number of the LED in the standard wiring, which has LED #0 at the top-left
+	// We get passed the number of the LED in the standard wiring, which has LED #0 at the bottom-left
 	// First we calculate how many complete pairs of 2-columns are prior to the given LED...
 	int numColPairs = moonNum / (2 * NUM_ROWS);
 	// ... and how many LEDs remain
 	int numLEDsRemaining = moonNum % (2 * NUM_ROWS);
 	// Our LED map has the columns in sequence, from bottom to top
-	// If we have more than a full column left, then the column that the LED is in will be wired upwards so we can just add that number
-	// If we have less than a full column, then we need to calculate how far the LED is from the bottom and add that
-	return (numColPairs * 2 * NUM_ROWS) + (numLEDsRemaining >= NUM_ROWS ? numLEDsRemaining : NUM_ROWS - 1 - numLEDsRemaining);
+	// If we have less than a full column, then the column that the LED is in will be wired upwards so we can just add that number
+	// If we have more than a full column left, then add the full column, and then calculate how far the LED is from the bottom and add that
+	return (numColPairs * 2 * NUM_ROWS) + (numLEDsRemaining < NUM_ROWS ? numLEDsRemaining : NUM_ROWS + (2 * NUM_ROWS - 1 - numLEDsRemaining));
 }
 
 #ifndef WIRING_CUSTOM
