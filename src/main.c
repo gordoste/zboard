@@ -62,11 +62,15 @@ bool bApplyLEDMapping = true;
 
 void handleChar(char);
 
-void clearStrip()
+void clearStrip(bool updateStrip)
 {
 	for (int i = 0; i < STRIP_LENGTH; i++)
 	{
 		pixels[i] = COLOR_BLACK.rgb;
+	}
+	if (!updateStrip)
+	{
+		return;
 	}
 	led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
 }
@@ -208,7 +212,7 @@ static struct bt_conn_cb bt_conn_cb_zboard = {
 
 void renderProblem()
 {
-	clearStrip();
+	clearStrip(true);
 	LOG_INF("Problem string: %s", strProblem);
 
 	strncpy(strProblemBackup, strProblem, sizeof(strProblemBackup) - 1); // store copy of problem string
@@ -373,7 +377,7 @@ int main(void)
 	LOG_INF("Bluetooth setup complete, advertising as '%s'", DEVICE_NAME);
 
 	led_startup_pattern();
-	clearStrip();
+	clearStrip(true);
 
 	char c;
 	while (1)

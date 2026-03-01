@@ -81,4 +81,6 @@ static const color_t color_list[] = {
 #define COLOR_WHITE color_list[7]
 #define COLOR_BLACK color_list[8]
 
+void clearStrip(bool updateStrip);
+
 #endif // _ZBOARD_H
