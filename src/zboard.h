@@ -34,13 +34,13 @@
 #define RGB(_r, _g, _b) {.r = (_r), .g = (_g), .b = (_b)}
 #define COLOR(_r, _g, _b, _name) {.rgb = RGB((_r), (_g), (_b)), .name = (_name)}
 
+#define LED_SET_PIXEL(col, row, color) pixels[LED_MAP_COL_ROW((col), (row))] = (color).rgb;
+
 #define LED_SET_ROW(row, color)              \
-    for (int __i = 0; __i < NUM_COLS; __i++) \
-    pixels[LED_MAP_COL_ROW(__i, row)] = (color).rgb
+    for (int __i = 0; __i < NUM_COLS; __i++) LED_SET_PIXEL(__i, row, color)
 
 #define LED_SET_COL(col, color)              \
-    for (int __i = 0; __i < NUM_ROWS; __i++) \
-    pixels[LED_MAP_COL_ROW(col, __i)] = (color).rgb
+    for (int __i = 0; __i < NUM_ROWS; __i++) LED_SET_PIXEL(col, __i, color)
 
 typedef struct colorType
 {
@@ -70,6 +70,8 @@ static const color_t color_list[] = {
     COLOR(LED_BRIGHTNESS, LED_BRIGHTNESS, LED_BRIGHTNESS, "white"),
     COLOR(0x00, 0x00, 0x00, "black"),
 };
+
+#define NUM_COLORS (sizeof(color_list) / sizeof(color_list[0]))
 
 #define COLOR_RED color_list[0]
 #define COLOR_GREEN color_list[1]
