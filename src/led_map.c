@@ -1,5 +1,8 @@
 #include "led_map.h"
 
+#define LOG_LEVEL LOG_LEVEL_INF
+LOG_MODULE_REGISTER(led_map);
+
 uint16_t led_map[NUM_PIXELS];
 
 #ifdef WIRING_LEDS_SKIP_FIRST_COLUMN

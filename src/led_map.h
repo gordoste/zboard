@@ -1,10 +1,12 @@
 #ifndef _LED_MAP_H
 #define _LED_MAP_H
 
+#include <zephyr/logging/log.h>
+
 // Wiring must be zig-zag fashion up and down the columns.
 // By default, we have the first LED at the top of the first column, and the columns go left to right
 // Uncommenting the following defines can modify this
-#define WIRING_FIRST_LED_RIGHT              // Columns goes right to left instead
+#define WIRING_FIRST_LED_RIGHT // Columns goes right to left instead
 // #define WIRING_FIRST_LED_BOTTOM			// First LED is at the bottom of the first column instead of the top
 
 // If some LEDs need to be skipped because there is a beam or other obstruction that you need to go around/over,
@@ -26,7 +28,7 @@
 #define NUM_COLS 11
 #define NUM_PIXELS NUM_ROWS *NUM_COLS
 
-#define LED_MAP_COL_ROW(col, row) (led_map[(col)*NUM_ROWS + (row)])
+#define LED_MAP_COL_ROW(col, row) (led_map[(col) * NUM_ROWS + (row)])
 
 extern uint16_t led_map[NUM_PIXELS];
 

@@ -6,4 +6,5 @@ project(zboard)
 target_sources(app PRIVATE
         src/main.c
         src/led_map.c
+        src/led_patterns.c
 )
