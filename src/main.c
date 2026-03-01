@@ -32,6 +32,7 @@ LOG_MODULE_REGISTER(main);
 // a<holdnum>,<holdnum>,<holdnum>#  (applies LED mapping and lights additional LEDs)
 // x<holdnum>,<holdnum>,<holdnum>#  (doesn't apply LED mapping)
 // t# or x# 	- clear board
+// r			- show random LED pattern from led_patterns.h
 
 struct led_rgb pixels[STRIP_LENGTH];
 
@@ -115,6 +116,10 @@ void handleChar(char c)
 			bApplyLEDMapping = true;
 			bAdditionalLEDs = true;
 			parse_state = PARSE_HOLDS;
+			return;
+		case 'r':
+		case 'R':
+			show_random_pattern();
 			return;
 		}
 		break;
