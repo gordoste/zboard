@@ -8,7 +8,9 @@ led_pattern_fn_t led_patterns[] = {
     left_to_right_pattern,
     right_to_left_pattern,
     top_to_bottom_pattern,
-    bottom_to_top_pattern};
+    bottom_to_top_pattern,
+    twinkle_pattern,
+};
 
 #define NUM_LED_PATTERNS (sizeof(led_patterns) / sizeof(led_patterns[0]))
 
@@ -98,7 +100,24 @@ void bottom_to_top_pattern(void)
             LOG_ERR("Failed to update LED strip: %d", err);
             return;
         }
-        k_sleep(K_MSEC(100));
+    }
+}
+
+void twinkle_pattern(void)
+{
+    for (int i = 0; i < 20; i++)
+    {
+        int c = rand() % NUM_COLS;
+        int r = rand() % NUM_ROWS;
+        clearStrip(false);
+        LED_SET_PIXEL(c, r, color_list[(c + r) % NUM_COLORS]);
+        int err = led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
+        if (err)
+        {
+            LOG_ERR("Failed to update LED strip: %d", err);
+            return;
+        }
+        k_sleep(K_MSEC(PATTERN_STEP_DELAY_MS));
     }
 }
 

@@ -9,5 +9,6 @@ void left_to_right_pattern(void);
 void right_to_left_pattern(void);
 void top_to_bottom_pattern(void);
 void bottom_to_top_pattern(void);
+void twinkle_pattern(void);
 
 void show_random_pattern(void);
