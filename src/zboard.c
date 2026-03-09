@@ -51,6 +51,10 @@ static const struct bt_data sd[] = {
 	BT_DATA_BYTES(BT_DATA_UUID128_ALL, BT_UUID_NUS_SRV_VAL),
 };
 
+struct k_work drainUARTWork;
+struct k_work randomPatternWork;
+struct k_work renderProblemWork;
+
 parse_state_t parse_state = PARSE_START;		  // Current state of the problem string parser
 char parseBuffer[PROBLEM_STRING_MAX_LENGTH] = ""; // Problem currently being received
 int parseBufferPos = 0;
@@ -119,7 +123,7 @@ void handleChar(char c)
 			return;
 		case 'r':
 		case 'R':
-			show_random_pattern();
+			k_work_submit(&randomPatternWork);
 			return;
 		}
 		break;
@@ -151,6 +155,7 @@ void handleChar(char c)
 			LOG_DBG("Received complete problem");
 			parseBuffer[parseBufferPos] = '\0';
 			strncpy(strProblem, parseBuffer, sizeof(strProblem));
+			k_work_submit(&renderProblemWork);
 			bProbPending = true;
 			parse_state = PARSE_START;
 			return;
@@ -215,7 +220,7 @@ static struct bt_conn_cb bt_conn_cb_zboard = {
 	.disconnected = bt_handle_disconnected,
 	.recycled = bt_handle_recycled};
 
-void renderProblem()
+void renderProblem(struct k_work *work)
 {
 	clearStrip(true);
 	LOG_INF("Problem string: %s", strProblem);
@@ -291,12 +296,11 @@ void renderProblem()
 	{
 		LOG_INF("Rendered problem with %d LEDs", ledCount);
 	}
+	bProbPending = false;
 }
 
 void input_cb(const struct device *dev, void *user_data)
 {
-	uint8_t c;
-
 	if (!uart_irq_update(uart_in))
 	{
 		return;
@@ -307,6 +311,12 @@ void input_cb(const struct device *dev, void *user_data)
 		return;
 	}
 
+	k_work_submit(&drainUARTWork);
+}
+
+void drainUART(struct k_work *work)
+{
+	uint8_t c;
 	/* read until FIFO empty */
 	while (uart_fifo_read(uart_in, &c, 1) == 1)
 	{
@@ -316,6 +326,10 @@ void input_cb(const struct device *dev, void *user_data)
 
 int main(void)
 {
+	k_work_init(&drainUARTWork, drainUART);
+	k_work_init(&randomPatternWork, show_random_pattern);
+	k_work_init(&renderProblemWork, renderProblem);
+
 	initialize_led_map();
 
 	if (device_is_ready(strip))
@@ -384,31 +398,10 @@ int main(void)
 	led_startup_pattern();
 	clearStrip(true);
 
-	char c;
 	while (1)
 	{
-		// Since receiving characters is handled by interrupts ( see input_cb() ), our main loop
-		// just checks if we have a problem ready to display and renders it.
-		// We do want to parse all characters in the UART receive queue first though.
-		if (bProbPending)
-		{
-			err = uart_poll_in(uart_in, &c);
-			if (err == -1)
-			{
-				renderProblem();
-				bProbPending = false;
-				strProblem[0] = '\0';
-			}
-			else if (err == 0)
-			{
-				handleChar(c);
-			}
-			else
-			{
-				LOG_ERR("Error polling UART: %d", err);
-			}
-		}
-
+		// Since receiving characters is handled by interrupts ( see input_cb() ), and
+		// task scheduling is handled by the kernel, we just need to sleep and let the system work.
 		k_sleep(K_MSEC(100));
 	}
 

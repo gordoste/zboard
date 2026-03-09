@@ -13,4 +13,4 @@ void top_to_bottom_pattern(void);
 void bottom_to_top_pattern(void);
 void twinkle_pattern(void);
 
-void show_random_pattern(void);
+void show_random_pattern(struct k_work *work);
