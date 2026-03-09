@@ -4,7 +4,7 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(zboard)
 
 target_sources(app PRIVATE
-        src/main.c
+        src/zboard.c
         src/led_map.c
         src/led_patterns.c
 )

@@ -11,7 +11,7 @@
 #include <zephyr/drivers/uart.h>
 
 #define LOG_LEVEL LOG_LEVEL_INF
-LOG_MODULE_REGISTER(main);
+LOG_MODULE_REGISTER(zboard);
 
 #define UART_NODE DT_ALIAS(zboard_input)
 #define STRIP_NODE DT_ALIAS(led_strip)
