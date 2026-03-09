@@ -4,7 +4,6 @@
 LOG_MODULE_REGISTER(led_patterns);
 
 led_pattern_fn_t led_patterns[] = {
-    led_startup_pattern,
     left_to_right_pattern,
     right_to_left_pattern,
     top_to_bottom_pattern,
