@@ -28,7 +28,7 @@ void led_startup_pattern(void)
             LOG_ERR("Failed to update LED strip: %d", err);
             return;
         }
-        k_sleep(K_MSEC(100));
+        k_sleep(K_MSEC(PATTERN_STEP_DELAY_MS));
     }
 }
 
@@ -37,7 +37,8 @@ void left_to_right_pattern(void)
     for (int c = 0; c < NUM_COLS; c++)
     {
         clearStrip(false);
-        for (int r = 0; r < NUM_ROWS; r++) {
+        for (int r = 0; r < NUM_ROWS; r++)
+        {
             LED_SET_PIXEL(c, r, color_list[r % NUM_COLORS]);
         }
         int err = led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
@@ -46,7 +47,7 @@ void left_to_right_pattern(void)
             LOG_ERR("Failed to update LED strip: %d", err);
             return;
         }
-        k_sleep(K_MSEC(100));
+        k_sleep(K_MSEC(PATTERN_STEP_DELAY_MS));
     }
 }
 
@@ -55,7 +56,8 @@ void right_to_left_pattern(void)
     for (int c = NUM_COLS - 1; c >= 0; c--)
     {
         clearStrip(false);
-        for (int r = 0; r < NUM_ROWS; r++) {
+        for (int r = 0; r < NUM_ROWS; r++)
+        {
             LED_SET_PIXEL(c, r, color_list[r % NUM_COLORS]);
         }
         int err = led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
@@ -64,7 +66,7 @@ void right_to_left_pattern(void)
             LOG_ERR("Failed to update LED strip: %d", err);
             return;
         }
-        k_sleep(K_MSEC(100));
+        k_sleep(K_MSEC(PATTERN_STEP_DELAY_MS));
     }
 }
 
@@ -73,7 +75,8 @@ void top_to_bottom_pattern(void)
     for (int r = NUM_ROWS - 1; r >= 0; r--)
     {
         clearStrip(false);
-        for (int c = 0; c < NUM_COLS; c++) {
+        for (int c = 0; c < NUM_COLS; c++)
+        {
             LED_SET_PIXEL(c, r, color_list[c % NUM_COLORS]);
         }
         int err = led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
@@ -82,7 +85,7 @@ void top_to_bottom_pattern(void)
             LOG_ERR("Failed to update LED strip: %d", err);
             return;
         }
-        k_sleep(K_MSEC(100));
+        k_sleep(K_MSEC(PATTERN_STEP_DELAY_MS));
     }
 }
 
@@ -91,7 +94,8 @@ void bottom_to_top_pattern(void)
     for (int r = 0; r < NUM_ROWS; r++)
     {
         clearStrip(false);
-        for (int c = 0; c < NUM_COLS; c++) {
+        for (int c = 0; c < NUM_COLS; c++)
+        {
             LED_SET_PIXEL(c, r, color_list[c % NUM_COLORS]);
         }
         int err = led_strip_update_rgb(strip, pixels, STRIP_LENGTH);
@@ -100,6 +104,7 @@ void bottom_to_top_pattern(void)
             LOG_ERR("Failed to update LED strip: %d", err);
             return;
         }
+        k_sleep(K_MSEC(PATTERN_STEP_DELAY_MS));
     }
 }
 

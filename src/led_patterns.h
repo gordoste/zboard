@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#define PATTERN_STEP_DELAY_MS 50
+
 typedef void (*led_pattern_fn_t)(void);
 
 void led_startup_pattern(void);
